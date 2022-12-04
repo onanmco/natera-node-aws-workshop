@@ -2,45 +2,28 @@ const http = require("http");
 const url = require("url");
 
 http.createServer((req, res) => {
-  const parsedUrl = url.parse(req.url);
+  const parsedUrl = url.parse(req.url, true);
   const path = parsedUrl.pathname;
 
   switch (path) {
     case "/hello":
       switch (req.method) {
-        case "POST":
+        case "GET":
+          const queryParams = parsedUrl.query;
+          const { name } = queryParams;
 
-          const chunks = [];
+          console.log(queryParams)
+          console.log(typeof queryParams)
 
-          req.on("data", (chunk) => {
-            chunks.push(chunk);
-          })
+          if (!name) {
+            res.statusCode = 400;
+            return res.end("\"name\" is required body parameter.");
+          }
 
-          req.on("end", () => {
-            const body = Buffer.concat(chunks)
-              .toString("utf-8")
-
-            const parsedBody = JSON.parse(body);
-
-            console.log(typeof parsedBody);
-            console.log(parsedBody);
-
-            const {
-              name
-            } = parsedBody;
-
-            if (!name) {
-              res.statusCode = 400;
-              return res.end("name is required body parameter.");
-            }
-
-            res.statusCode = 200;
-            return res.end(`Hello ${name}`);
-          })
-          
+          res.statusCode = 200;
+          res.end(`Hello ${name}`);
           
           break;
-      
         default:
           res.statusCode = 405;
           res.end("Method not allowed.");
