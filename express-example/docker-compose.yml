@@ -1,0 +1,21 @@
+version: "3.8"
+networks:
+    bridged-network:
+        name: bridged-network
+        driver: bridge
+services:
+    database:
+        container_name: database
+        image: mysql:8.0
+        environment:
+            MYSQL_DATABASE: test
+            MYSQL_ROOT_PASSWORD: 1234
+            MYSQL_USER: admin
+            MYSQL_PASSWORD: 1234
+        ports:
+            - 3306:3306
+        volumes:
+            - ./db:/var/lib/mysql/
+        command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_general_ci']
+        networks:
+            - bridged-network
