@@ -16,7 +16,7 @@ const knex = require("knex").knex({
 
 app.use(express.json());
 
-const schema = yup.object({
+const registerSchema = yup.object({
   first_name: yup.string()
     .required(),
   last_name: yup.string()
@@ -33,9 +33,17 @@ const schema = yup.object({
     .required()
 });
 
+const loginSchema = yup.object({
+  email: yup.string()
+    .email()
+    .required(),
+  password: yup.string()
+    .required(),
+});
+
 app.post("/register", async (req, res) => {
   try {
-    schema.validateSync(req.body, { abortEarly: false })
+    registerSchema.validateSync(req.body, { abortEarly: false })
   } catch (e) {
     res.status(400);
     return res.json({
@@ -83,7 +91,40 @@ app.post("/register", async (req, res) => {
   })
 });
 
-// implement a new POST /login endpoint which allows clients to be able to login with their credentials
+app.post("/login", async (req, res) => {
+  try {
+    loginSchema.validateSync(req.body);
+  } catch (e) {
+    res.status(400);
+    return res.json({
+      error: "Validation error",
+      details: e.errors
+    })
+  }
+
+  const {
+    email,
+    password
+  } = req.body;
+
+  const existingUser = await knex("users")
+    .select("*")
+    .where({ email, password })
+    .first();
+
+  if (!existingUser) {
+    res.status = 400;
+    return res.json({
+      error: "Validation error",
+      message: "Incorrect email or password",
+    });
+  }
+
+  return res.json({
+    message: "Logged in successfully",
+    data: existingUser,
+  });
+});
 
 app.listen(3000, () => {
   console.log("Server has just started to running on port 3000.");
